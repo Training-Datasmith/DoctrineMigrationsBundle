@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle;
 
+use function dirname;
+
 use Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass\ConfigureDependencyFactoryPass;
 use Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass\RegisterMigrationsPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 
-use function dirname;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 final class DoctrineMigrationsBundle extends Bundle
 {

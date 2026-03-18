@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\Tests\DependencyInjection;
 
+use function assert;
+
 use Doctrine\Bundle\DoctrineBundle\DependencyInjection\DoctrineExtension;
 use Doctrine\Bundle\DoctrineBundle\Registry;
 use Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass\RegisterMigrationsPass;
@@ -32,9 +34,9 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
+
 use Symfony\Component\DependencyInjection\Reference;
 
-use function assert;
 use function sys_get_temp_dir;
 
 class DoctrineMigrationsExtensionTest extends TestCase
@@ -156,7 +158,7 @@ class DoctrineMigrationsExtensionTest extends TestCase
         ];
         $container = $this->getContainer($config);
 
-        $sorter = new class () implements Comparator{
+        $sorter = new class () implements Comparator {
             public function compare(Version $a, Version $b): int
             {
                 return 1;

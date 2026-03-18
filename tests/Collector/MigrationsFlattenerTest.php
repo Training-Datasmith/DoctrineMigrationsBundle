@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Doctrine\Bundle\MigrationsBundle\Tests\Collector;
 
 use DateTimeImmutable;
+
+use function dirname;
+
 use Doctrine\Bundle\MigrationsBundle\Collector\MigrationsFlattener;
 use Doctrine\Bundle\MigrationsBundle\Tests\Fixtures\Migrations\Migration001;
 use Doctrine\DBAL\Connection;
@@ -14,9 +17,8 @@ use Doctrine\Migrations\Metadata\ExecutedMigration;
 use Doctrine\Migrations\Metadata\ExecutedMigrationsList;
 use Doctrine\Migrations\Version\Version;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
 
-use function dirname;
+use Psr\Log\NullLogger;
 
 class MigrationsFlattenerTest extends TestCase
 {

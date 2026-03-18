@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\Collector;
 
+use function count;
+
 use Doctrine\DBAL\Exception;
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
@@ -11,10 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 use Symfony\Component\VarDumper\Cloner\Data;
-use Throwable;
 
-use function count;
-use function get_class;
+use Throwable;
 
 /** @internal */
 final class MigrationsCollector extends DataCollector

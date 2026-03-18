@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\DependencyInjection;
 
-use ReflectionClass;
-use Symfony\Component\Config\Definition\Builder\TreeBuilder;
-use Symfony\Component\Config\Definition\ConfigurationInterface;
-
 use function array_filter;
 use function array_keys;
 use function constant;
+
 use function count;
 use function in_array;
 use function is_string;
+
+use ReflectionClass;
+
 use function str_starts_with;
 use function strlen;
 use function strtoupper;
 use function substr;
+
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 /** @internal */
 final class Configuration implements ConfigurationInterface

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\DependencyInjection;
 
+use function array_keys;
+use function assert;
+
 use Doctrine\Bundle\MigrationsBundle\Collector\MigrationsCollector;
 use Doctrine\Bundle\MigrationsBundle\Collector\MigrationsFlattener;
 use Doctrine\Migrations\AbstractMigration;
@@ -11,8 +14,21 @@ use Doctrine\Migrations\Metadata\Storage\MetadataStorage;
 use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
 use Doctrine\Migrations\MigrationsRepository;
 use Doctrine\Migrations\Version\MigrationFactory;
+
+use function explode;
+use function implode;
+
 use InvalidArgumentException;
+
+use function is_array;
+
 use RuntimeException;
+
+use function sprintf;
+use function strlen;
+
+use function substr;
+
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -20,15 +36,6 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
-
-use function array_keys;
-use function assert;
-use function explode;
-use function implode;
-use function is_array;
-use function sprintf;
-use function strlen;
-use function substr;
 
 /** @internal */
 final class DoctrineMigrationsExtension extends Extension

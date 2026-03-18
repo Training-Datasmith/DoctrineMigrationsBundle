@@ -4,20 +4,26 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass;
 
-use Doctrine\Migrations\DependencyFactory;
-use InvalidArgumentException;
-use RuntimeException;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
-
 use function array_keys;
 use function assert;
 use function count;
+
+use Doctrine\Migrations\DependencyFactory;
+
 use function implode;
+
+use InvalidArgumentException;
+
 use function is_array;
 use function is_string;
+
+use RuntimeException;
+
 use function sprintf;
+
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 /** @internal */
 final class ConfigureDependencyFactoryPass implements CompilerPassInterface

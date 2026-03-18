@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Doctrine\Bundle\MigrationsBundle\Collector;
 
+use function array_map;
+
 use DateTimeImmutable;
 use Doctrine\Migrations\Metadata\AvailableMigration;
 use Doctrine\Migrations\Metadata\AvailableMigrationsList;
 use Doctrine\Migrations\Metadata\ExecutedMigration;
 use Doctrine\Migrations\Metadata\ExecutedMigrationsList;
-use ReflectionClass;
 
-use function array_map;
+use ReflectionClass;
 
 /** @internal */
 final class MigrationsFlattener
