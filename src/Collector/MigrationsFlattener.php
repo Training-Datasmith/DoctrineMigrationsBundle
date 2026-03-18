@@ -29,7 +29,7 @@ final class MigrationsFlattener
      */
     public function flattenAvailableMigrations(AvailableMigrationsList $migrationsList): array
     {
-        return array_map(static fn (AvailableMigration $migration) => [
+        return array_map(static fn (AvailableMigration $migration): array => [
             'version' => (string) $migration->getVersion(),
             'is_new' => true,
             'is_unavailable' => false,
@@ -53,7 +53,7 @@ final class MigrationsFlattener
      */
     public function flattenExecutedMigrations(ExecutedMigrationsList $migrationsList, AvailableMigrationsList $availableMigrations): array
     {
-        return array_map(static function (ExecutedMigration $migration) use ($availableMigrations) {
+        return array_map(static function (ExecutedMigration $migration) use ($availableMigrations): array {
             $availableMigration = $availableMigrations->hasMigration($migration->getVersion())
                 ? $availableMigrations->getMigration($migration->getVersion())->getMigration()
                 : null;

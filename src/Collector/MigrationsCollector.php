@@ -64,7 +64,7 @@ final class MigrationsCollector extends DataCollector
         }
 
         $connection           = $this->dependencyFactory->getConnection();
-        $this->data['driver'] = get_class($connection->getDriver());
+        $this->data['driver'] = $connection->getDriver()::class;
         $this->data['name']   = $connection->getDatabase();
 
         $this->data['namespaces'] = $configuration->getMigrationDirectories();

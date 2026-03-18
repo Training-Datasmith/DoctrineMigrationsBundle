@@ -19,7 +19,7 @@ final class ServiceMigrationsRepository implements MigrationsRepository
     private array $migrations = [];
 
     /** @param ServiceProviderInterface<AbstractMigration> $container */
-    public function __construct(private ServiceProviderInterface $container)
+    public function __construct(private readonly ServiceProviderInterface $container)
     {
     }
 
