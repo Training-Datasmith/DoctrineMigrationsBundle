@@ -1,26 +1,21 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Doctrine\Bundle\MigrationsBundle;
+declare (strict_types=1);
+namespace Doctrine\Bundle\Migrations_Bundle;
 
 use function dirname;
-
-use Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass\ConfigureDependencyFactoryPass;
-use Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass\RegisterMigrationsPass;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-
-use Symfony\Component\HttpKernel\Bundle\Bundle;
-
-final class DoctrineMigrationsBundle extends Bundle
+use Doctrine\Bundle\Migrations_Bundle\Dependency_Injection\Compiler_Pass\Configure_Dependency_Factory_Pass;
+use Doctrine\Bundle\Migrations_Bundle\Dependency_Injection\Compiler_Pass\Register_Migrations_Pass;
+use Symfony\Component\Dependency_Injection\Container_Builder;
+use Symfony\Component\Http_Kernel\Bundle\Bundle;
+final class Doctrine_Migrations_Bundle extends Bundle
 {
-    public function build(ContainerBuilder $container): void
+    public function build(Container_Builder $container): void
     {
-        $container->addCompilerPass(new ConfigureDependencyFactoryPass());
-        $container->addCompilerPass(new RegisterMigrationsPass());
+        $container->add_compiler_pass(new Configure_Dependency_Factory_Pass());
+        $container->add_compiler_pass(new Register_Migrations_Pass());
     }
-
-    public function getPath(): string
+    public function get_path(): string
     {
         return dirname(__DIR__);
     }

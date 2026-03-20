@@ -1,21 +1,17 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Doctrine\Bundle\MigrationsBundle\Collector;
+declare (strict_types=1);
+namespace Doctrine\Bundle\Migrations_Bundle\Collector;
 
 use function array_map;
-
 use DateTimeImmutable;
-use Doctrine\Migrations\Metadata\AvailableMigration;
-use Doctrine\Migrations\Metadata\AvailableMigrationsList;
-use Doctrine\Migrations\Metadata\ExecutedMigration;
-use Doctrine\Migrations\Metadata\ExecutedMigrationsList;
-
+use Doctrine\Migrations\Metadata\Available_Migration;
+use Doctrine\Migrations\Metadata\Available_Migrations_List;
+use Doctrine\Migrations\Metadata\Executed_Migration;
+use Doctrine\Migrations\Metadata\Executed_Migrations_List;
 use ReflectionClass;
-
 /** @internal */
-final class MigrationsFlattener
+final class Migrations_Flattener
 {
     /**
      * @return array{
@@ -28,19 +24,10 @@ final class MigrationsFlattener
      *    file: string|false,
      * }[]
      */
-    public function flattenAvailableMigrations(AvailableMigrationsList $migrationsList): array
+    public function flatten_available_migrations(Available_Migrations_List $migrations_list): array
     {
-        return array_map(static fn (AvailableMigration $migration): array => [
-            'version' => (string) $migration->getVersion(),
-            'is_new' => true,
-            'is_unavailable' => false,
-            'description' => $migration->getMigration()->getDescription(),
-            'executed_at' =>  null,
-            'execution_time' =>  null,
-            'file' => (new ReflectionClass($migration->getMigration()))->getFileName(),
-        ], $migrationsList->getItems());
+        return array_map(static fn(Available_Migration $migration): array => ['version' => (string) $migration->get_version(), 'is_new' => true, 'is_unavailable' => false, 'description' => $migration->get_migration()->get_description(), 'executed_at' => null, 'execution_time' => null, 'file' => (new ReflectionClass($migration->get_migration()))->get_file_name()], $migrations_list->get_items());
     }
-
     /**
      * @return array{
      *    version: string,
@@ -52,22 +39,11 @@ final class MigrationsFlattener
      *    file: string|false|null,
      * }[]
      */
-    public function flattenExecutedMigrations(ExecutedMigrationsList $migrationsList, AvailableMigrationsList $availableMigrations): array
+    public function flatten_executed_migrations(Executed_Migrations_List $migrations_list, Available_Migrations_List $available_migrations): array
     {
-        return array_map(static function (ExecutedMigration $migration) use ($availableMigrations): array {
-            $availableMigration = $availableMigrations->hasMigration($migration->getVersion())
-                ? $availableMigrations->getMigration($migration->getVersion())->getMigration()
-                : null;
-
-            return [
-                'version' => (string) $migration->getVersion(),
-                'is_new' => false,
-                'is_unavailable' => $availableMigration === null,
-                'description' => $availableMigration?->getDescription(),
-                'executed_at' => $migration->getExecutedAt(),
-                'execution_time' => $migration->getExecutionTime(),
-                'file' => $availableMigration !== null ? (new ReflectionClass($availableMigration))->getFileName() : null,
-            ];
-        }, $migrationsList->getItems());
+        return array_map(static function (Executed_Migration $migration) use ($available_migrations): array {
+            $available_migration = $available_migrations->has_migration($migration->get_version()) ? $available_migrations->get_migration($migration->get_version())->get_migration() : null;
+            return ['version' => (string) $migration->get_version(), 'is_new' => false, 'is_unavailable' => $available_migration === null, 'description' => $available_migration?->get_description(), 'executed_at' => $migration->get_executed_at(), 'execution_time' => $migration->get_execution_time(), 'file' => $available_migration !== null ? (new ReflectionClass($available_migration))->get_file_name() : null];
+        }, $migrations_list->get_items());
     }
 }

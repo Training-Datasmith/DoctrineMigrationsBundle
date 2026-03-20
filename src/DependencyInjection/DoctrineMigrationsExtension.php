@@ -1,225 +1,161 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Doctrine\Bundle\MigrationsBundle\DependencyInjection;
+declare (strict_types=1);
+namespace Doctrine\Bundle\Migrations_Bundle\Dependency_Injection;
 
 use function array_keys;
 use function assert;
-
-use Doctrine\Bundle\MigrationsBundle\Collector\MigrationsCollector;
-use Doctrine\Bundle\MigrationsBundle\Collector\MigrationsFlattener;
-use Doctrine\Migrations\AbstractMigration;
-use Doctrine\Migrations\Metadata\Storage\MetadataStorage;
-use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
-use Doctrine\Migrations\MigrationsRepository;
-use Doctrine\Migrations\Version\MigrationFactory;
-
+use Doctrine\Bundle\Migrations_Bundle\Collector\Migrations_Collector;
+use Doctrine\Bundle\Migrations_Bundle\Collector\Migrations_Flattener;
+use Doctrine\Migrations\Abstract_Migration;
+use Doctrine\Migrations\Metadata\Storage\Metadata_Storage;
+use Doctrine\Migrations\Metadata\Storage\Table_Metadata_Storage_Configuration;
+use Doctrine\Migrations\Migrations_Repository;
+use Doctrine\Migrations\Version\Migration_Factory;
 use function explode;
 use function implode;
-
 use InvalidArgumentException;
-
 use function is_array;
-
 use RuntimeException;
-
 use function sprintf;
 use function strlen;
-
 use function substr;
-
-use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Extension\Extension;
-use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
-
+use Symfony\Component\Config\File_Locator;
+use Symfony\Component\Dependency_Injection\Argument\Service_Closure_Argument;
+use Symfony\Component\Dependency_Injection\Container_Builder;
+use Symfony\Component\Dependency_Injection\Definition;
+use Symfony\Component\Dependency_Injection\Extension\Extension;
+use Symfony\Component\Dependency_Injection\Loader\Php_File_Loader;
+use Symfony\Component\Dependency_Injection\Reference;
 /** @internal */
-final class DoctrineMigrationsExtension extends Extension
+final class Doctrine_Migrations_Extension extends Extension
 {
     /**
      * Responds to the migrations configuration parameter.
      *
      * {@inheritDoc}
      */
-    public function load(array $configs, ContainerBuilder $container): void
+    public function load(array $configs, Container_Builder $container): void
     {
         $configuration = new Configuration();
-
-        $config = $this->processConfiguration($configuration, $configs);
-
-        $locator = new FileLocator(__DIR__ . '/../../config/');
-        $loader  = new PhpFileLoader($container, $locator);
-
+        $config = $this->process_configuration($configuration, $configs);
+        $locator = new File_Locator(__DIR__ . '/../../config/');
+        $loader = new Php_File_Loader($container, $locator);
         $loader->load('services.php');
-
         if ($config['enable_service_migrations']) {
-            $container->registerForAutoconfiguration(AbstractMigration::class)
-                ->addTag('doctrine_migrations.migration');
-
-            if (! isset($config['services'][MigrationsRepository::class])) {
-                $config['services'][MigrationsRepository::class] = 'doctrine.migrations.service_migrations_repository';
+            $container->register_for_autoconfiguration(Abstract_Migration::class)->add_tag('doctrine_migrations.migration');
+            if (!isset($config['services'][Migrations_Repository::class])) {
+                $config['services'][Migrations_Repository::class] = 'doctrine.migrations.service_migrations_repository';
             }
         } else {
-            $container->removeDefinition('doctrine.migrations.service_migrations_repository');
-            $container->removeDefinition('doctrine.migrations.connection');
-            $container->removeDefinition('doctrine.migrations.logger');
+            $container->remove_definition('doctrine.migrations.service_migrations_repository');
+            $container->remove_definition('doctrine.migrations.connection');
+            $container->remove_definition('doctrine.migrations.logger');
         }
-
-        $configurationDefinition = $container->getDefinition('doctrine.migrations.configuration');
-
+        $configuration_definition = $container->get_definition('doctrine.migrations.configuration');
         foreach ($config['migrations_paths'] as $ns => $path) {
-            $path = $this->checkIfBundleRelativePath($path, $container);
-            $configurationDefinition->addMethodCall('addMigrationsDirectory', [$ns, $path]);
+            $path = $this->check_if_bundle_relative_path($path, $container);
+            $configuration_definition->add_method_call('addMigrationsDirectory', [$ns, $path]);
         }
-
-        foreach ($config['migrations'] as $migrationClass) {
-            $configurationDefinition->addMethodCall('addMigrationClass', [$migrationClass]);
+        foreach ($config['migrations'] as $migration_class) {
+            $configuration_definition->add_method_call('addMigrationClass', [$migration_class]);
         }
-
         if ($config['organize_migrations'] !== false) {
-            $configurationDefinition->addMethodCall('setMigrationOrganization', [$config['organize_migrations']]);
+            $configuration_definition->add_method_call('setMigrationOrganization', [$config['organize_migrations']]);
         }
-
         if ($config['custom_template'] !== null) {
-            $configurationDefinition->addMethodCall('setCustomTemplate', [$config['custom_template']]);
+            $configuration_definition->add_method_call('setCustomTemplate', [$config['custom_template']]);
         }
-
-        $configurationDefinition->addMethodCall('setAllOrNothing', [$config['all_or_nothing']]);
-        $configurationDefinition->addMethodCall('setCheckDatabasePlatform', [$config['check_database_platform']]);
-
+        $configuration_definition->add_method_call('setAllOrNothing', [$config['all_or_nothing']]);
+        $configuration_definition->add_method_call('setCheckDatabasePlatform', [$config['check_database_platform']]);
         if ($config['enable_profiler']) {
-            $this->registerCollector($container);
+            $this->register_collector($container);
         }
-
-        $configurationDefinition->addMethodCall('setTransactional', [$config['transactional']]);
-
-        $diDefinition = $container->getDefinition('doctrine.migrations.dependency_factory');
-
-        if (! isset($config['services'][MigrationFactory::class])) {
-            $config['services'][MigrationFactory::class] = 'doctrine.migrations.migrations_factory';
+        $configuration_definition->add_method_call('setTransactional', [$config['transactional']]);
+        $di_definition = $container->get_definition('doctrine.migrations.dependency_factory');
+        if (!isset($config['services'][Migration_Factory::class])) {
+            $config['services'][Migration_Factory::class] = 'doctrine.migrations.migrations_factory';
         }
-
-        foreach ($config['services'] as $doctrineId => $symfonyId) {
-            $diDefinition->addMethodCall('setDefinition', [$doctrineId, new ServiceClosureArgument(new Reference($symfonyId))]);
+        foreach ($config['services'] as $doctrine_id => $symfony_id) {
+            $di_definition->add_method_call('setDefinition', [$doctrine_id, new Service_Closure_Argument(new Reference($symfony_id))]);
         }
-
-        foreach ($config['factories'] as $doctrineId => $symfonyId) {
-            $diDefinition->addMethodCall('setDefinition', [$doctrineId, new Reference($symfonyId)]);
+        foreach ($config['factories'] as $doctrine_id => $symfony_id) {
+            $di_definition->add_method_call('setDefinition', [$doctrine_id, new Reference($symfony_id)]);
         }
-
-        if (isset($config['services'][MetadataStorage::class])) {
-            $container->removeDefinition('doctrine_migrations.schema_filter_listener');
+        if (isset($config['services'][Metadata_Storage::class])) {
+            $container->remove_definition('doctrine_migrations.schema_filter_listener');
         } else {
-            $filterDefinition     = $container->getDefinition('doctrine_migrations.schema_filter_listener');
-            $storageConfiguration = $config['storage']['table_storage'];
-
-            $storageDefinition = new Definition(TableMetadataStorageConfiguration::class);
-            $container->setDefinition('doctrine.migrations.storage.table_storage', $storageDefinition);
-            $container->setAlias('doctrine.migrations.metadata_storage', 'doctrine.migrations.storage.table_storage');
-
-            if ($storageConfiguration['table_name'] === null) {
-                $filterDefinition->addArgument('doctrine_migration_versions');
+            $filter_definition = $container->get_definition('doctrine_migrations.schema_filter_listener');
+            $storage_configuration = $config['storage']['table_storage'];
+            $storage_definition = new Definition(Table_Metadata_Storage_Configuration::class);
+            $container->set_definition('doctrine.migrations.storage.table_storage', $storage_definition);
+            $container->set_alias('doctrine.migrations.metadata_storage', 'doctrine.migrations.storage.table_storage');
+            if ($storage_configuration['table_name'] === null) {
+                $filter_definition->add_argument('doctrine_migration_versions');
             } else {
-                $storageDefinition->addMethodCall('setTableName', [$storageConfiguration['table_name']]);
-                $filterDefinition->addArgument($storageConfiguration['table_name']);
+                $storage_definition->add_method_call('setTableName', [$storage_configuration['table_name']]);
+                $filter_definition->add_argument($storage_configuration['table_name']);
             }
-
-            if ($storageConfiguration['version_column_name'] !== null) {
-                $storageDefinition->addMethodCall('setVersionColumnName', [$storageConfiguration['version_column_name']]);
+            if ($storage_configuration['version_column_name'] !== null) {
+                $storage_definition->add_method_call('setVersionColumnName', [$storage_configuration['version_column_name']]);
             }
-
-            if ($storageConfiguration['version_column_length'] !== null) {
-                $storageDefinition->addMethodCall('setVersionColumnLength', [$storageConfiguration['version_column_length']]);
+            if ($storage_configuration['version_column_length'] !== null) {
+                $storage_definition->add_method_call('setVersionColumnLength', [$storage_configuration['version_column_length']]);
             }
-
-            if ($storageConfiguration['executed_at_column_name'] !== null) {
-                $storageDefinition->addMethodCall('setExecutedAtColumnName', [$storageConfiguration['executed_at_column_name']]);
+            if ($storage_configuration['executed_at_column_name'] !== null) {
+                $storage_definition->add_method_call('setExecutedAtColumnName', [$storage_configuration['executed_at_column_name']]);
             }
-
-            if ($storageConfiguration['execution_time_column_name'] !== null) {
-                $storageDefinition->addMethodCall('setExecutionTimeColumnName', [$storageConfiguration['execution_time_column_name']]);
+            if ($storage_configuration['execution_time_column_name'] !== null) {
+                $storage_definition->add_method_call('setExecutionTimeColumnName', [$storage_configuration['execution_time_column_name']]);
             }
-
-            $configurationDefinition->addMethodCall('setMetadataStorageConfiguration', [new Reference('doctrine.migrations.storage.table_storage')]);
-
+            $configuration_definition->add_method_call('setMetadataStorageConfiguration', [new Reference('doctrine.migrations.storage.table_storage')]);
             // Add tag to the filter for each Doctrine connection, so the table is ignored for multiple connections
-            if ($container->hasParameter('doctrine.connections')) {
+            if ($container->has_parameter('doctrine.connections')) {
                 /** @var array<string, string> $connections */
-                $connections = $container->getParameter('doctrine.connections');
+                $connections = $container->get_parameter('doctrine.connections');
                 foreach (array_keys($connections) as $connection) {
-                    $filterDefinition->addTag('doctrine.dbal.schema_filter', ['connection' => $connection]);
+                    $filter_definition->add_tag('doctrine.dbal.schema_filter', ['connection' => $connection]);
                 }
             }
         }
-
         if ($config['em'] !== null && $config['connection'] !== null) {
-            throw new InvalidArgumentException(
-                'You cannot specify both "connection" and "em" in the DoctrineMigrationsBundle configurations.',
-            );
+            throw new InvalidArgumentException('You cannot specify both "connection" and "em" in the DoctrineMigrationsBundle configurations.');
         }
-
-        $container->setParameter('doctrine.migrations.preferred_em', $config['em']);
-        $container->setParameter('doctrine.migrations.preferred_connection', $config['connection']);
+        $container->set_parameter('doctrine.migrations.preferred_em', $config['em']);
+        $container->set_parameter('doctrine.migrations.preferred_connection', $config['connection']);
     }
-
-    private function checkIfBundleRelativePath(string $path, ContainerBuilder $container): string
+    private function check_if_bundle_relative_path(string $path, Container_Builder $container): string
     {
         if (isset($path[0]) && $path[0] === '@') {
-            $pathParts  = explode('/', $path);
-            $bundleName = substr($pathParts[0], 1);
-
-            $bundlePath = $this->getBundlePath($bundleName, $container);
-
-            return $bundlePath . substr($path, strlen('@' . $bundleName));
+            $path_parts = explode('/', $path);
+            $bundle_name = substr($path_parts[0], 1);
+            $bundle_path = $this->get_bundle_path($bundle_name, $container);
+            return $bundle_path . substr($path, strlen('@' . $bundle_name));
         }
-
         return $path;
     }
-
-    private function getBundlePath(string $bundleName, ContainerBuilder $container): string
+    private function get_bundle_path(string $bundle_name, Container_Builder $container): string
     {
-        $bundleMetadata = $container->getParameter('kernel.bundles_metadata');
-        assert(is_array($bundleMetadata));
-
-        if (! isset($bundleMetadata[$bundleName])) {
-            throw new RuntimeException(sprintf(
-                'The bundle "%s" has not been registered, available bundles: %s',
-                $bundleName,
-                implode(', ', array_keys($bundleMetadata)),
-            ));
+        $bundle_metadata = $container->get_parameter('kernel.bundles_metadata');
+        assert(is_array($bundle_metadata));
+        if (!isset($bundle_metadata[$bundle_name])) {
+            throw new RuntimeException(sprintf('The bundle "%s" has not been registered, available bundles: %s', $bundle_name, implode(', ', array_keys($bundle_metadata))));
         }
-
-        return $bundleMetadata[$bundleName]['path'];
+        return $bundle_metadata[$bundle_name]['path'];
     }
-
-    private function registerCollector(ContainerBuilder $container): void
+    private function register_collector(Container_Builder $container): void
     {
-        $flattenerDefinition = new Definition(MigrationsFlattener::class);
-        $container->setDefinition('doctrine_migrations.migrations_flattener', $flattenerDefinition);
-
-        $collectorDefinition = new Definition(MigrationsCollector::class, [
-            new Reference('doctrine.migrations.dependency_factory'),
-            new Reference('doctrine_migrations.migrations_flattener'),
-        ]);
-        $collectorDefinition
-            ->addTag('data_collector', [
-                'template' => '@DoctrineMigrations/Collector/migrations.html.twig',
-                'id' => 'doctrine_migrations',
-                'priority' => '249',
-            ]);
-        $container->setDefinition('doctrine_migrations.migrations_collector', $collectorDefinition);
+        $flattener_definition = new Definition(Migrations_Flattener::class);
+        $container->set_definition('doctrine_migrations.migrations_flattener', $flattener_definition);
+        $collector_definition = new Definition(Migrations_Collector::class, [new Reference('doctrine.migrations.dependency_factory'), new Reference('doctrine_migrations.migrations_flattener')]);
+        $collector_definition->add_tag('data_collector', ['template' => '@DoctrineMigrations/Collector/migrations.html.twig', 'id' => 'doctrine_migrations', 'priority' => '249']);
+        $container->set_definition('doctrine_migrations.migrations_collector', $collector_definition);
     }
-
-    public function getXsdValidationBasePath(): string
+    public function get_xsd_validation_base_path(): string
     {
         return __DIR__ . '/../../config/schema';
     }
-
-    public function getNamespace(): string
+    public function get_namespace(): string
     {
         return 'http://symfony.com/schema/dic/doctrine/migrations/3.0';
     }

@@ -1,40 +1,30 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Doctrine\Bundle\MigrationsBundle\DependencyInjection\CompilerPass;
+declare (strict_types=1);
+namespace Doctrine\Bundle\Migrations_Bundle\Dependency_Injection\Compiler_Pass;
 
 use Doctrine\DBAL\Connection;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\Argument\BoundArgument;
-use Symfony\Component\DependencyInjection\Argument\ServiceLocatorArgument;
-use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\TypedReference;
-
+use Psr\Log\Logger_Interface;
+use Symfony\Component\Dependency_Injection\Argument\Bound_Argument;
+use Symfony\Component\Dependency_Injection\Argument\Service_Locator_Argument;
+use Symfony\Component\Dependency_Injection\Compiler\Compiler_Pass_Interface;
+use Symfony\Component\Dependency_Injection\Container_Builder;
+use Symfony\Component\Dependency_Injection\Reference;
+use Symfony\Component\Dependency_Injection\Typed_Reference;
 /** @internal */
-final class RegisterMigrationsPass implements CompilerPassInterface
+final class Register_Migrations_Pass implements Compiler_Pass_Interface
 {
-    public function process(ContainerBuilder $container): void
+    public function process(Container_Builder $container): void
     {
-        if (! $container->hasDefinition('doctrine.migrations.service_migrations_repository')) {
+        if (!$container->has_definition('doctrine.migrations.service_migrations_repository')) {
             return;
         }
-
-        $migrationRefs = [];
-
-        foreach ($container->findTaggedServiceIds('doctrine_migrations.migration', true) as $id => $attributes) {
-            $definition = $container->getDefinition($id);
-            $definition->setBindings([
-                Connection::class => new BoundArgument(new Reference('doctrine.migrations.connection'), false),
-                LoggerInterface::class => new BoundArgument(new Reference('doctrine.migrations.logger'), false),
-            ]);
-
-            $migrationRefs[$id] = new TypedReference($id, $definition->getClass());
+        $migration_refs = [];
+        foreach ($container->find_tagged_service_ids('doctrine_migrations.migration', true) as $id => $attributes) {
+            $definition = $container->get_definition($id);
+            $definition->set_bindings([Connection::class => new Bound_Argument(new Reference('doctrine.migrations.connection'), false), Logger_Interface::class => new Bound_Argument(new Reference('doctrine.migrations.logger'), false)]);
+            $migration_refs[$id] = new Typed_Reference($id, $definition->get_class());
         }
-
-        $container->getDefinition('doctrine.migrations.service_migrations_repository')
-            ->replaceArgument(0, new ServiceLocatorArgument($migrationRefs));
+        $container->get_definition('doctrine.migrations.service_migrations_repository')->replace_argument(0, new Service_Locator_Argument($migration_refs));
     }
 }

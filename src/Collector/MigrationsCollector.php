@@ -1,86 +1,64 @@
 <?php
 
-declare(strict_types=1);
-
-namespace Doctrine\Bundle\MigrationsBundle\Collector;
+declare (strict_types=1);
+namespace Doctrine\Bundle\Migrations_Bundle\Collector;
 
 use function count;
-
 use Doctrine\DBAL\Exception;
-use Doctrine\Migrations\DependencyFactory;
-use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\DataCollector\DataCollector;
-use Symfony\Component\VarDumper\Cloner\Data;
-
+use Doctrine\Migrations\Dependency_Factory;
+use Doctrine\Migrations\Metadata\Storage\Table_Metadata_Storage_Configuration;
+use Symfony\Component\Http_Foundation\Request;
+use Symfony\Component\Http_Foundation\Response;
+use Symfony\Component\Http_Kernel\Data_Collector\Data_Collector;
+use Symfony\Component\Var_Dumper\Cloner\Data;
 use Throwable;
-
 /** @internal */
-final class MigrationsCollector extends DataCollector
+final class Migrations_Collector extends Data_Collector
 {
-    public function __construct(
-        private readonly DependencyFactory $dependencyFactory,
-        private readonly MigrationsFlattener $flattener,
-    ) {
+    public function __construct(private readonly Dependency_Factory $dependency_factory, private readonly Migrations_Flattener $flattener)
+    {
     }
-
     public function collect(Request $request, Response $response, Throwable|null $exception = null): void
     {
         if ($this->data !== []) {
             return;
         }
-
-        $metadataStorage = $this->dependencyFactory->getMetadataStorage();
-        $planCalculator  = $this->dependencyFactory->getMigrationPlanCalculator();
-
+        $metadata_storage = $this->dependency_factory->get_metadata_storage();
+        $plan_calculator = $this->dependency_factory->get_migration_plan_calculator();
         try {
-            $executedMigrations = $metadataStorage->getExecutedMigrations();
-        } catch (Exception $dbalException) {
-            $this->dependencyFactory->getLogger()->error(
-                'error while trying to collect executed migrations',
-                ['exception' => $dbalException],
-            );
-
+            $executed_migrations = $metadata_storage->get_executed_migrations();
+        } catch (Exception $dbal_exception) {
+            $this->dependency_factory->get_logger()->error('error while trying to collect executed migrations', ['exception' => $dbal_exception]);
             return;
         }
-
-        $availableMigrations = $planCalculator->getMigrations();
-
-        $this->data['available_migrations_count']   = count($availableMigrations);
-        $unavailableMigrations                      = $executedMigrations->unavailableSubset($availableMigrations);
-        $this->data['unavailable_migrations_count'] = count($unavailableMigrations);
-
-        $newMigrations                     = $availableMigrations->newSubset($executedMigrations);
-        $this->data['new_migrations']      = $this->flattener->flattenAvailableMigrations($newMigrations);
-        $this->data['executed_migrations'] = $this->flattener->flattenExecutedMigrations($executedMigrations, $availableMigrations);
-
-        $this->data['storage'] = $metadataStorage::class;
-        $configuration         = $this->dependencyFactory->getConfiguration();
-        $storage               = $configuration->getMetadataStorageConfiguration();
-        if ($storage instanceof TableMetadataStorageConfiguration) {
-            $this->data['table']  = $storage->getTableName();
-            $this->data['column'] = $storage->getVersionColumnName();
+        $available_migrations = $plan_calculator->get_migrations();
+        $this->data['available_migrations_count'] = count($available_migrations);
+        $unavailable_migrations = $executed_migrations->unavailable_subset($available_migrations);
+        $this->data['unavailable_migrations_count'] = count($unavailable_migrations);
+        $new_migrations = $available_migrations->new_subset($executed_migrations);
+        $this->data['new_migrations'] = $this->flattener->flatten_available_migrations($new_migrations);
+        $this->data['executed_migrations'] = $this->flattener->flatten_executed_migrations($executed_migrations, $available_migrations);
+        $this->data['storage'] = $metadata_storage::class;
+        $configuration = $this->dependency_factory->get_configuration();
+        $storage = $configuration->get_metadata_storage_configuration();
+        if ($storage instanceof Table_Metadata_Storage_Configuration) {
+            $this->data['table'] = $storage->get_table_name();
+            $this->data['column'] = $storage->get_version_column_name();
         }
-
-        $connection           = $this->dependencyFactory->getConnection();
-        $this->data['driver'] = $connection->getDriver()::class;
-        $this->data['name']   = $connection->getDatabase();
-
-        $this->data['namespaces'] = $configuration->getMigrationDirectories();
+        $connection = $this->dependency_factory->get_connection();
+        $this->data['driver'] = $connection->get_driver()::class;
+        $this->data['name'] = $connection->get_database();
+        $this->data['namespaces'] = $configuration->get_migration_directories();
     }
-
-    public function getName(): string
+    public function get_name(): string
     {
         return 'doctrine_migrations';
     }
-
     /** @return array<string, mixed>|Data */
-    public function getData(): array|Data
+    public function get_data(): array|Data
     {
         return $this->data;
     }
-
     public function reset(): void
     {
         $this->data = [];
