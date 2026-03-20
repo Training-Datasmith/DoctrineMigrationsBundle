@@ -52,12 +52,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Doctrine\\Bundle\\MigrationsBundle\\": "src"
+            "Doctrine\\Bundle\\Migrations_Bundle\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Doctrine\\Bundle\\MigrationsBundle\\Tests\\": "tests"
+            "Doctrine\\Bundle\\Migrations_Bundle\\Tests\\": "tests"
         }
     },
     "config": {
